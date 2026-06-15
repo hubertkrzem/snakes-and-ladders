@@ -37,11 +37,11 @@ def snakesAndLadders():
             return f"Pawn {self.name}"
         
 
+        def addMove(self, moves):
+            self.pos += moves
+
         def updatePos(self, newPos):
             self.pos = newPos
-
-        def movePos(self, moves):
-            self.pos += moves
 
         def getPos(self):
             return self.pos
@@ -82,6 +82,28 @@ def snakesAndLadders():
 
         pawns = [Pawn(i) for i in range(0, pawnNum)]
         board, modifiers = boardGenerator(boardLength, snakes, ladders)
+
+        gameLive = True
+        while gameLive:
+            for pawn in pawns:
+                roll = diceRoll()
+                currPos = pawn.getPos()
+
+                print(f"{pawn} rolls {roll}")
+                print(f"Current position: {currPos}")
+                print(f"New position: {currPos + roll}")
+                
+                if (currPos + roll) > boardLength:
+                    print(f"Roll too high, move invalid")
+                    break
+                else:
+                    pawn.addMove(roll)
+                
+                if pawn.getPos() == boardLength:
+                    print(f"{pawn} has won the game")
+                    gameLive = False
+                    break
+                    
 
         print(board)
         # print(f"Snakes: {snakeMap}")
