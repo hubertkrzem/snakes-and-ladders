@@ -25,10 +25,17 @@ Board:
 '''
 
 def snakesAndLadders():
-
     class Pawn():
-        def __init__(self):
+        def __init__(self, name):
             self.pos = 0
+            self.name = name
+
+        def __repr__(self): # if type(self.name) == int(): return f"Pawn {self.name}" else:
+            return f"Pawn {self.name}"
+        
+        def __str__(self):
+            return f"Pawn {self.name}"
+        
 
         def updatePos(self, newPos):
             self.pos = newPos
@@ -36,43 +43,10 @@ def snakesAndLadders():
         def movePos(self, moves):
             self.pos += moves
 
-    # Function for menu and taking inputs
-    def menu():
-        while True:
-            welcome = (
-                f"\n"
-                f"{"="*50}\n"
-                f"{"Snakes and Ladders Monte Carlo Simulaton":^50}\n"
-                f"{" "*50}\n"
-                f"© 2026 Hubert Krzemieniewski. All rights reserved.\n"
-                f"{"="*52}"
-                f"\n"
-            )
+        def getPos(self):
+            return self.pos
 
-            choiceMessage = (
-                f"Select mode (1-3):\n"
-                f"1. Single simulation\n"
-                f"2. Monte Carlo Simulation\n"
-                f"3. Exit\n"
-                f"> "
-            )
-                
-            print(welcome)
-            choice = "1" # input(choiceMessage)
 
-            if choice == "1":   # Single Simulation
-                controller()
-                print(input())          
-      
-            elif choice == "2": # Monte Carlo Simulation
-                print("\nFeature not ready")
-            elif choice == "3": # Exit
-                print("\nThanks for using my program :)")
-                break
-            else:
-                print("\nInvalid choice. Please try again.")
-
-    # Function for generating game board
     def boardGenerator(length=100, snakes=10, ladders=10):
         # Generate board
         board = list(range(length))
@@ -104,18 +78,56 @@ def snakesAndLadders():
         # return snakeMap, ladderMap
         return board, modifiers
  
-    # Function for running the game and returning results
-    def controller():
-        # Returns random number in range, simulating diceroll
-        def diceRoll(sides=6):
-            return r.randint(1, 6)
-        
+    def controller(boardLength=100, snakes=10, ladders=10, pawnNum=1):
 
-        board, modifiers = boardGenerator()
+        pawns = [Pawn(i) for i in range(0, pawnNum)]
+        board, modifiers = boardGenerator(boardLength, snakes, ladders)
+
         print(board)
         # print(f"Snakes: {snakeMap}")
         # print(f"Ladders: {ladderMap}")
         print(f"All modifiers: {modifiers}")
+
+        print(pawns)
+
+    # Returns random number in range, simulating diceroll
+    def diceRoll(sides=6):
+        return r.randint(1, 6)
+
+    def menu():
+        while True:
+            welcome = (
+                f"\n"
+                f"{"="*50}\n"
+                f"{"Snakes and Ladders Monte Carlo Simulaton":^50}\n"
+                f"{" "*50}\n"
+                f"© 2026 Hubert Krzemieniewski. All rights reserved.\n"
+                f"{"="*52}"
+                f"\n"
+            )
+
+            choiceMessage = (
+                f"Select mode (1-3):\n"
+                f"1. Single simulation\n"
+                f"2. Monte Carlo Simulation\n"
+                f"3. Exit\n"
+                f"> "
+            )
+                
+            print(welcome)
+            choice = "1" # input(choiceMessage)
+
+            if choice == "1":   # Single Simulation
+                controller(pawnNum=3)
+                print(input())          
+      
+            elif choice == "2": # Monte Carlo Simulation
+                print("\nFeature not ready")
+            elif choice == "3": # Exit
+                print("\nThanks for using my program :)")
+                break
+            else:
+                print("\nInvalid choice. Please try again.")
 
     menu()
 
