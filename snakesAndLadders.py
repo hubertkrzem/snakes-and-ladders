@@ -12,11 +12,6 @@ Pawn:
     - Dice roll update (pos + 2)
     - Complete update (Hit ladder pos = ladder end)
 
-Board:
-- Track all squares (empty, snake, ladder)
-- Track snake ladder mapping
-
-
 --- Controller ---
 - Generate board
 - Generate pawn(s)
@@ -31,10 +26,10 @@ class Pawn():
         self.name = name
 
     def __repr__(self): # if type(self.name) == int(): return f"Pawn {self.name}" else:
-        return f"P{self.name}"
+        return f"{self.name}"
     
     def __str__(self):
-        return f"P{self.name}"
+        return f"{self.name}"
     
     def addMove(self, moves):
         self.pos += moves
@@ -47,21 +42,13 @@ class Pawn():
 
 
 def boardGenerator(length=100, snakes=10, ladders=10):
-    # Generate board
     board = list(range(length))
-
     modifiers = {}
 
     # Generate snakes
     snakeStarts = r.sample(range(1, length-1), snakes)              # Set snakeStarts as random values from 0 to board length-1 (if snake on last cell pawn cant finish)
     snakeEnds = [r.randint(0, start-1) for start in snakeStarts]    # Set snakeEnds as random values from 0 to corresponding snakeStart -1 (snake dosent move player forward, moves atleast one cell back)
     snakeMap = {}
-
-    i = 0
-    for start in snakeStarts:
-        snakeMap[start] = snakeEnds[i]
-        modifiers[start] = snakeEnds[i]
-        i += 1
 
     # Generate Ladders
     ladderStarts = r.sample(range(0, length-1), ladders)                # Set ladderStarts as random values from 0 to board length-1 (if ladder starts on last cell, no cell is ahead)
@@ -70,18 +57,22 @@ def boardGenerator(length=100, snakes=10, ladders=10):
 
     i = 0
     for start in ladderStarts:
+        snakeMap[start] = snakeEnds[i]
+        modifiers[start] = snakeEnds[i]
+
         ladderMap[start] = ladderEnds[i]
         modifiers[start] = ladderEnds[i]
         i += 1
 
-    # return snakeMap, ladderMap
     return modifiers, snakeMap, ladderMap
 
 def controller(boardLength=100, snakes=10, ladders=10, pawnNum=1):
+    # Game generation
     pawnNum = int(pawnNum)
-    pawns = [Pawn(i) for i in range(0, pawnNum)]
+    pawns = [Pawn(f"P{i}") for i in range(0, pawnNum)]
     modifiers, snakeMap, ladderMap = boardGenerator(boardLength, snakes, ladders)
 
+    # Game running
     liveGame = True
     while liveGame:
         for pawn in pawns:
@@ -114,7 +105,8 @@ def controller(boardLength=100, snakes=10, ladders=10, pawnNum=1):
                 print(f"***** {pawn} has won the game *****\n")
                 liveGame = False
                 break
-                
+    
+    # Snake & Ladders map output
     print(f"Snakes: {snakeMap}")
     print(f"Ladders: {ladderMap}")
     # print(f"All modifiers: {modifiers}")
