@@ -71,20 +71,19 @@ def boardGenerator(length=100, snakes=10, ladders=10):
     i = 0
     for start in ladderStarts:
         ladderMap[start] = ladderEnds[i]
-        modifiers[start] = snakeEnds[i]
+        modifiers[start] = ladderEnds[i]
         i += 1
 
     # return snakeMap, ladderMap
-    return board, modifiers, snakeMap, ladderMap
+    return modifiers, snakeMap, ladderMap
 
 def controller(boardLength=100, snakes=10, ladders=10, pawnNum=1):
     pawnNum = int(pawnNum)
-
     pawns = [Pawn(i) for i in range(0, pawnNum)]
-    board, modifiers, snakeMap, ladderMap = boardGenerator(boardLength, snakes, ladders)
+    modifiers, snakeMap, ladderMap = boardGenerator(boardLength, snakes, ladders)
 
-    gameLive = True
-    while gameLive:
+    liveGame = True
+    while liveGame:
         for pawn in pawns:
             roll = diceRoll()
             currPos = pawn.getPos()
@@ -101,7 +100,6 @@ def controller(boardLength=100, snakes=10, ladders=10, pawnNum=1):
             else:
                 pawn.addMove(roll)
                 
-                # Snakes / Ladders check + update
                 if pawn.getPos() in modifiers:
                     prev = pawn.getPos()
                     pawn.setPos(modifiers[prev])
@@ -111,16 +109,12 @@ def controller(boardLength=100, snakes=10, ladders=10, pawnNum=1):
                         print(f"{pawn} hit a snake and fell from {prev} to {new}")
                     elif new > prev:
                         print(f"{pawn} hit a ladder and climbed from {prev} to {new}")
-
             print()
-            
             if pawn.getPos() == boardLength:
                 print(f"***** {pawn} has won the game *****\n")
-                gameLive = False
+                liveGame = False
                 break
                 
-
-    print(board)
     print(f"Snakes: {snakeMap}")
     print(f"Ladders: {ladderMap}")
     # print(f"All modifiers: {modifiers}")
@@ -157,9 +151,11 @@ def menu():
     
         elif choice == "2": # Monte Carlo Simulation
             print("\nFeature not ready")
+
         elif choice == "3": # Exit
             print("\nThanks for using my program :)")
             break
+
         else:
             print("\nInvalid choice. Please try again.")
 
