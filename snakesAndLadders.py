@@ -5,7 +5,7 @@ import random as r
 2. Create board square interpreter, if square == (reg, snk, ldr): change pos accordingly.
 3.
 
---- Class ---
+--- Objects ---
 Pawn:
 - Holds postion
 - Takes in position updates,
@@ -21,7 +21,8 @@ Board:
 - Generate board
 - Generate pawn(s)
 - Run dicerolls
-- Update pawn positions depending on
+- Update pawn positions
+- Detects win condition
 '''
 
 class Pawn():
@@ -30,16 +31,15 @@ class Pawn():
         self.name = name
 
     def __repr__(self): # if type(self.name) == int(): return f"Pawn {self.name}" else:
-        return f"Pawn {self.name}"
+        return f"P{self.name}"
     
     def __str__(self):
-        return f"Pawn {self.name}"
+        return f"P{self.name}"
     
-
     def addMove(self, moves):
         self.pos += moves
 
-    def updatePos(self, newPos):
+    def setPos(self, newPos):
         self.pos = newPos
 
     def getPos(self):
@@ -75,12 +75,13 @@ def boardGenerator(length=100, snakes=10, ladders=10):
         i += 1
 
     # return snakeMap, ladderMap
-    return board, modifiers
+    return board, modifiers, snakeMap, ladderMap
 
 def controller(boardLength=100, snakes=10, ladders=10, pawnNum=1):
+    pawnNum = int(pawnNum)
 
     pawns = [Pawn(i) for i in range(0, pawnNum)]
-    board, modifiers = boardGenerator(boardLength, snakes, ladders)
+    board, modifiers, snakeMap, ladderMap = boardGenerator(boardLength, snakes, ladders)
 
     gameLive = True
     while gameLive:
@@ -92,26 +93,38 @@ def controller(boardLength=100, snakes=10, ladders=10, pawnNum=1):
             print(f"Current position: {currPos}")
             print(f"New position: {currPos + roll}")
             
+            # --- Move validation ---
+            # Move not > board length
             if (currPos + roll) > boardLength:
-                print(f"Roll too high, move invalid")
-                break
+                print(f"Roll too high, move invalid\n")
+                continue
             else:
                 pawn.addMove(roll)
+                
+                # Snakes / Ladders check + update
+                if pawn.getPos() in modifiers:
+                    prev = pawn.getPos()
+                    pawn.setPos(modifiers[prev])
+                    new = pawn.getPos()
+
+                    if prev > new:
+                        print(f"{pawn} hit a snake and fell from {prev} to {new}")
+                    elif new > prev:
+                        print(f"{pawn} hit a ladder and climbed from {prev} to {new}")
+
+            print()
             
             if pawn.getPos() == boardLength:
-                print(f"{pawn} has won the game")
+                print(f"***** {pawn} has won the game *****\n")
                 gameLive = False
                 break
                 
 
     print(board)
-    # print(f"Snakes: {snakeMap}")
-    # print(f"Ladders: {ladderMap}")
-    print(f"All modifiers: {modifiers}")
+    print(f"Snakes: {snakeMap}")
+    print(f"Ladders: {ladderMap}")
+    # print(f"All modifiers: {modifiers}")
 
-    print(pawns)
-
-# Returns random number in range, simulating diceroll
 def diceRoll(sides=6):
     return r.randint(1, 6)
 
@@ -136,10 +149,10 @@ def menu():
         )
             
         print(welcome)
-        choice = "1" # input(choiceMessage)
+        choice = input(choiceMessage)
 
         if choice == "1":   # Single Simulation
-            controller(pawnNum=3)
+            controller(pawnNum=input(f"Number of pawns:\n> "))
             print(input())          
     
         elif choice == "2": # Monte Carlo Simulation
