@@ -3,7 +3,9 @@ import random as r
 '''
 1. Build a representation of a the s&l board with regular squares, snakes and ladders.
 2. Create board square interpreter, if square == (reg, snk, ldr): change pos accordingly.
-3.
+3. Full extent of game customisation
+4. Stat tracking for monte carlo simulations
+5. Manual single player mode
 
 --- Objects ---
 Pawn:
@@ -66,50 +68,57 @@ def boardGenerator(length=100, snakes=10, ladders=10):
 
     return modifiers, snakeMap, ladderMap
 
-def controller(boardLength=100, snakes=10, ladders=10, pawnNum=1):
+def controller(boardLength=100, snakes=10, ladders=10, pawnNum=2, games=1):
     # Game generation
     pawnNum = int(pawnNum)
     pawns = [Pawn(f"P{i}") for i in range(0, pawnNum)]
     modifiers, snakeMap, ladderMap = boardGenerator(boardLength, snakes, ladders)
 
     # Game running
-    liveGame = True
-    while liveGame:
-        for pawn in pawns:
-            roll = diceRoll()
-            currPos = pawn.getPos()
+    for i in range(0, games):
+        liveGame = True
+        while liveGame:
+            for pawn in pawns:
+                roll = diceRoll()
+                currPos = pawn.getPos()
 
-            print(f"{pawn} rolls {roll}")
-            print(f"Current position: {currPos}")
-            print(f"New position: {currPos + roll}")
-            
-            # --- Move validation ---
-            # Move not > board length
-            if (currPos + roll) > boardLength:
-                print(f"Roll too high, move invalid\n")
-                continue
-            else:
-                pawn.addMove(roll)
+                print(f"{pawn} rolls {roll}")
+                print(f"Current position: {currPos}")
+                print(f"New position: {currPos + roll}")
                 
-                if pawn.getPos() in modifiers:
-                    prev = pawn.getPos()
-                    pawn.setPos(modifiers[prev])
-                    new = pawn.getPos()
+                # --- Move validation ---
+                # Move not > board length
+                if (currPos + roll) > boardLength:
+                    print(f"Roll too high, move invalid\n")
+                    continue
+                else:
+                    pawn.addMove(roll)
+                    
+                    if pawn.getPos() in modifiers:
+                        prev = pawn.getPos()
+                        pawn.setPos(modifiers[prev])
+                        new = pawn.getPos()
 
-                    if prev > new:
-                        print(f"{pawn} hit a snake and fell from {prev} to {new}")
-                    elif new > prev:
-                        print(f"{pawn} hit a ladder and climbed from {prev} to {new}")
-            print()
-            if pawn.getPos() == boardLength:
-                print(f"***** {pawn} has won the game *****\n")
-                liveGame = False
-                break
+                        if prev > new:
+                            print(f"{pawn} hit a snake and fell from {prev} to {new}")
+                        elif new > prev:
+                            print(f"{pawn} hit a ladder and climbed from {prev} to {new}")
+                print()
+                if pawn.getPos() == boardLength:
+                    print(f"***** {pawn} has won the game *****\n")
+                    liveGame = False
+                    break
     
-    # Snake & Ladders map output
-    print(f"Snakes: {snakeMap}")
-    print(f"Ladders: {ladderMap}")
-    # print(f"All modifiers: {modifiers}")
+        # Reset Game
+        for pawn in pawns:
+            pawn.setPos(0)
+
+        # Snake & Ladders map output
+        print(f"Snakes: {snakeMap}")
+        print(f"Ladders: {ladderMap}\n")
+        # print(f"All modifiers: {modifiers}")
+    
+    # Controller function returns average stats over total sims, inside of function print individual game stats and/or moves
 
 def diceRoll(sides=6):
     return r.randint(1, 6)
@@ -137,12 +146,50 @@ def menu():
         print(welcome)
         choice = input(choiceMessage)
 
-        if choice == "1":   # Single Simulation
-            controller(pawnNum=input(f"Number of pawns:\n> "))
-            print(input())          
+        # --- Single Simulation setup ---
+        if choice == "1":
+            print("Single Simulation")
+            while True:
+                default = input("Default settings (y/n):\n> ").capitalize()
+                
+                if default == "Y":
+                    controller()
+                    break
+
+                elif default == "N":
+                    lengthIn=int(input(f"Board length:\n> "))
+                    snakesIn=int(input(f"Number of snakes:\n> "))
+                    laddersIn=int(input(f"Number of ladders:\n> "))
+                    pawnNumIn=int(input(f"Number of pawns:\n> "))
+
+                    controller(boardLength=lengthIn, snakes=snakesIn, ladders=laddersIn, pawnNum=pawnNumIn)
+                    break
+                else:
+                    print("Incorrect value. Please try again (y/n):")     
     
-        elif choice == "2": # Monte Carlo Simulation
-            print("\nFeature not ready")
+         # --- Monte Carlo Simulation setup ---
+        elif choice == "2":
+            print("Monte Carlo Simulation")
+            while True:
+                default = input("Default settings (y/n):\n> ").capitalize()
+
+                if default == "Y":
+                    gamesIn=int(input(f"Number of games:\n> "))
+
+                    controller(games=gamesIn)
+                    break
+
+                elif default == "N":
+                    lengthIn=int(input(f"Board length:\n> "))
+                    snakesIn=int(input(f"Number of snakes:\n> "))
+                    laddersIn=int(input(f"Number of ladders:\n> "))
+                    pawnNumIn=int(input(f"Number of pawns:\n> "))
+                    gamesIn=int(input(f"Number of games:\n> "))
+
+                    controller(boardLength=lengthIn, snakes=snakesIn, ladders=laddersIn, pawnNum=pawnNumIn)
+                    break
+                else:
+                    print("Incorrect value. Please try again (y/n):")
 
         elif choice == "3": # Exit
             print("\nThanks for using my program :)")
