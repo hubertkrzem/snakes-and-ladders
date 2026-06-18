@@ -1,4 +1,4 @@
-import random as r
+import random
 
 '''
 1. Build a representation of a the s&l board with regular squares, snakes and ladders.
@@ -27,101 +27,93 @@ class Pawn():
         self.pos = 0
         self.name = name
 
-    def __repr__(self): # if type(self.name) == int(): return f"Pawn {self.name}" else:
+    def __repr__(self):
         return f"{self.name}"
     
     def __str__(self):
         return f"{self.name}"
-    
-    def addMove(self, moves):
-        self.pos += moves
-
-    def setPos(self, newPos):
-        self.pos = newPos
-
-    def getPos(self):
-        return self.pos
 
 
-def boardGenerator(length=100, snakes=10, ladders=10):
-    board = list(range(length))
-    modifiers = {}
+def boardGenerator(length=100, snakes=10, ladders=10) -> tuple[dict, dict, dict]:
+    modifierMap = {}
 
     # Generate snakes
-    snakeStarts = r.sample(range(1, length-1), snakes)              # Set snakeStarts as random values from 0 to board length-1 (if snake on last cell pawn cant finish)
-    snakeEnds = [r.randint(0, start-1) for start in snakeStarts]    # Set snakeEnds as random values from 0 to corresponding snakeStart -1 (snake dosent move player forward, moves atleast one cell back)
+    snakeStarts = random.sample(range(1, length-1), snakes)              # Set snakeStarts as random values from 0 to board length-1 (if snake on last cell pawn cant finish)
+    snakeEnds = [random.randint(0, start-1) for start in snakeStarts]    # Set snakeEnds as random values from 0 to corresponding snakeStart -1 (snake dosent move player forward, moves atleast one cell back)
     snakeMap = {}
 
+    for i, start in enumerate(snakeStarts):
+        snakeMap[start] = snakeEnds[i]
+        modifierMap[start] = snakeEnds[i]
+
     # Generate Ladders
-    ladderStarts = r.sample(range(0, length-1), ladders)                # Set ladderStarts as random values from 0 to board length-1 (if ladder starts on last cell, no cell is ahead)
-    ladderEnds = [r.randint(start+1, length) for start in ladderStarts] # Set ladderEnds as random values from corresponding ladderStart+1 to end (ladder dosent move player back, moves atleast one cell forward)
+    ladderStarts = random.sample(range(0, length-1), ladders)                # Set ladderStarts as random values from 0 to board length-1 (if ladder starts on last cell, no cell is ahead)
+    ladderEnds = [random.randint(start+1, length) for start in ladderStarts] # Set ladderEnds as random values from corresponding ladderStart+1 to end (ladder dosent move player back, moves atleast one cell forward)
     ladderMap = {}
 
-    i = 0
-    for start in ladderStarts:
-        snakeMap[start] = snakeEnds[i]
-        modifiers[start] = snakeEnds[i]
-
+    for i, start in enumerate(ladderStarts):
         ladderMap[start] = ladderEnds[i]
-        modifiers[start] = ladderEnds[i]
-        i += 1
+        modifierMap[start] = ladderEnds[i]
 
-    return modifiers, snakeMap, ladderMap
+    return modifierMap, snakeMap, ladderMap
 
-def controller(boardLength=100, snakes=10, ladders=10, pawnNum=2, games=1):
-    # Game generation
-    pawnNum = int(pawnNum)
-    pawns = [Pawn(f"P{i}") for i in range(0, pawnNum)]
-    modifiers, snakeMap, ladderMap = boardGenerator(boardLength, snakes, ladders)
+def controller(boardLength=100, snakes=10, ladders=10, pawnNum=2, gamesNum=1):
+    pawns, modifierMap, snakeMap, ladderMap = buildGame(pawnNum, boardLength, snakes, ladders)
 
-    # Game running
-    for i in range(0, games):
-        liveGame = True
-        while liveGame:
+    runGame(pawns, modifierMap, gamesNum, boardLength)
+
+    # Snake & Ladders map output
+    print(f"Snakes: {snakeMap}")
+    print(f"Ladders: {ladderMap}\n")
+
+def buildGame(pawnCount, boardLength, snakes, ladders):
+    pawns = [Pawn(f"P{i}") for i in range(pawnCount)]
+    modifierMap, snakeMap, ladderMap = boardGenerator(boardLength, snakes, ladders)
+
+    return pawns, modifierMap, snakeMap, ladderMap
+
+def runGame(pawns, modifierMap, numGames, boardLength):
+    for _ in range(numGames):
+        gameActive = True
+        while gameActive:
             for pawn in pawns:
                 roll = diceRoll()
-                currPos = pawn.getPos()
+                currentPos = pawn.pos
 
                 print(f"{pawn} rolls {roll}")
-                print(f"Current position: {currPos}")
-                print(f"New position: {currPos + roll}")
-                
+                print(f"Current position: {currentPos}")
+                print(f"New position: {currentPos + roll}")
+
                 # --- Move validation ---
                 # Move not > board length
-                if (currPos + roll) > boardLength:
+                if (currentPos + roll) > boardLength:
                     print(f"Roll too high, move invalid\n")
                     continue
                 else:
-                    pawn.addMove(roll)
-                    
-                    if pawn.getPos() in modifiers:
-                        prev = pawn.getPos()
-                        pawn.setPos(modifiers[prev])
-                        new = pawn.getPos()
+                    pawn.pos += roll
 
-                        if prev > new:
-                            print(f"{pawn} hit a snake and fell from {prev} to {new}")
-                        elif new > prev:
-                            print(f"{pawn} hit a ladder and climbed from {prev} to {new}")
+                    if pawn.pos in modifierMap:
+                        squareLanded = pawn.pos
+                        pawn.pos = modifierMap[squareLanded]
+                        squareFinal = pawn.pos
+
+                        if squareLanded > squareFinal:
+                            print(f"{pawn} hit a snake and fell from {squareLanded} to {squareFinal}")
+                        elif squareFinal > squareLanded:
+                            print(f"{pawn} hit a ladder and climbed from {squareLanded} to {squareFinal}")
                 print()
-                if pawn.getPos() == boardLength:
+                if pawn.pos == boardLength:
                     print(f"***** {pawn} has won the game *****\n")
-                    liveGame = False
+                    gameActive = False
                     break
-    
-        # Reset Game
+
+        # --- Simulation reset ---
         for pawn in pawns:
-            pawn.setPos(0)
+            pawn.pos = 0
 
-        # Snake & Ladders map output
-        print(f"Snakes: {snakeMap}")
-        print(f"Ladders: {ladderMap}\n")
-        # print(f"All modifiers: {modifiers}")
-    
-    # Controller function returns average stats over total sims, inside of function print individual game stats and/or moves
 
-def diceRoll(sides=6):
-    return r.randint(1, 6)
+def diceRoll(sides=6) -> int:
+    return random.randint(1, sides)
 
 def menu():
     while True:
@@ -186,7 +178,7 @@ def menu():
                     pawnNumIn=int(input(f"Number of pawns:\n> "))
                     gamesIn=int(input(f"Number of games:\n> "))
 
-                    controller(boardLength=lengthIn, snakes=snakesIn, ladders=laddersIn, pawnNum=pawnNumIn)
+                    controller(boardLength=lengthIn, snakes=snakesIn, ladders=laddersIn, pawnNum=pawnNumIn, games=gamesIn)
                     break
                 else:
                     print("Incorrect value. Please try again (y/n):")
