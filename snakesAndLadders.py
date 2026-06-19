@@ -32,8 +32,7 @@ class Pawn():
     
     def __str__(self):
         return f"{self.name}"
-
-
+    
 def boardGenerator(length=100, snakes=10, ladders=10) -> tuple[dict, dict, dict]:
     modifierMap = {}
 
@@ -57,10 +56,10 @@ def boardGenerator(length=100, snakes=10, ladders=10) -> tuple[dict, dict, dict]
 
     return modifierMap, snakeMap, ladderMap
 
-def controller(boardLength=100, snakes=10, ladders=10, pawnNum=2, gamesNum=1):
+def controller(boardLength=100, snakes=10, ladders=10, pawnNum=2, gamesNum=1, verbose=True):
     pawns, modifierMap, snakeMap, ladderMap = buildGame(pawnNum, boardLength, snakes, ladders)
 
-    runGame(pawns, modifierMap, gamesNum, boardLength)
+    runGame(pawns, modifierMap, gamesNum, boardLength, verbose)
 
     # Snake & Ladders map output
     print(f"Snakes: {snakeMap}")
@@ -72,7 +71,7 @@ def buildGame(pawnCount, boardLength, snakes, ladders):
 
     return pawns, modifierMap, snakeMap, ladderMap
 
-def runGame(pawns, modifierMap, numGames, boardLength):
+def runGame(pawns, modifierMap, numGames, boardLength, verbose):
     for _ in range(numGames):
         gameActive = True
         while gameActive:
@@ -80,14 +79,16 @@ def runGame(pawns, modifierMap, numGames, boardLength):
                 roll = diceRoll()
                 currentPos = pawn.pos
 
-                print(f"{pawn} rolls {roll}")
-                print(f"Current position: {currentPos}")
-                print(f"New position: {currentPos + roll}")
+                if verbose:
+                    print(f"{pawn} rolls {roll}")
+                    print(f"Current position: {currentPos}")
+                    print(f"New position: {currentPos + roll}")
 
                 # --- Move validation ---
                 # Move not > board length
                 if (currentPos + roll) > boardLength:
-                    print(f"Roll too high, move invalid\n")
+                    if verbose:
+                        print(f"Roll too high, move invalid\n")
                     continue
                 else:
                     pawn.pos += roll
@@ -97,11 +98,12 @@ def runGame(pawns, modifierMap, numGames, boardLength):
                         pawn.pos = modifierMap[squareLanded]
                         squareFinal = pawn.pos
 
-                        if squareLanded > squareFinal:
-                            print(f"{pawn} hit a snake and fell from {squareLanded} to {squareFinal}")
-                        elif squareFinal > squareLanded:
-                            print(f"{pawn} hit a ladder and climbed from {squareLanded} to {squareFinal}")
-                print()
+                        if verbose:
+                            if squareLanded > squareFinal:
+                                print(f"{pawn} hit a snake and fell from {squareLanded} to {squareFinal}")
+                            elif squareFinal > squareLanded:
+                                print(f"{pawn} hit a ladder and climbed from {squareLanded} to {squareFinal}")
+        
                 if pawn.pos == boardLength:
                     print(f"***** {pawn} has won the game *****\n")
                     gameActive = False
@@ -168,7 +170,7 @@ def menu():
                 if default == "Y":
                     gamesIn=int(input(f"Number of games:\n> "))
 
-                    controller(games=gamesIn)
+                    controller(gamesNum=gamesIn, verbose=False)
                     break
 
                 elif default == "N":
@@ -178,7 +180,7 @@ def menu():
                     pawnNumIn=int(input(f"Number of pawns:\n> "))
                     gamesIn=int(input(f"Number of games:\n> "))
 
-                    controller(boardLength=lengthIn, snakes=snakesIn, ladders=laddersIn, pawnNum=pawnNumIn, games=gamesIn)
+                    controller(boardLength=lengthIn, snakes=snakesIn, ladders=laddersIn, pawnNum=pawnNumIn, gamesNum=gamesIn, verbose=False)
                     break
                 else:
                     print("Incorrect value. Please try again (y/n):")
