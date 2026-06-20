@@ -1,11 +1,9 @@
 import random
+from dataclasses import dataclass
 
 '''
 1. Build a representation of a the s&l board with regular squares, snakes and ladders.
 2. Create board square interpreter, if square == (reg, snk, ldr): change pos accordingly.
-3. Full extent of game customisation
-4. Stat tracking for monte carlo simulations
-5. Manual single player mode
 
 --- Objects ---
 Pawn:
@@ -20,6 +18,18 @@ Pawn:
 - Run dicerolls
 - Update pawn positions
 - Detects win condition
+
+3. Full extent of game customisation
+
+4. Stat tracking for monte carlo simulations
+--- Statistics ---
+- # of moves per game
+- snake hits
+- ladder hits
+- squares heatmap
+- 
+
+5. Manual single player mode
 '''
 
 class Pawn():
@@ -32,6 +42,10 @@ class Pawn():
     
     def __str__(self):
         return f"{self.name}"
+    
+@dataclass
+class GameStats:
+    moves: int = 0
     
 def boardGenerator(length=100, snakes=10, ladders=10) -> tuple[dict, dict, dict]:
     modifierMap = {}
@@ -73,10 +87,13 @@ def buildGame(pawnCount, boardLength, snakes, ladders):
 
 def runGame(pawns, modifierMap, numGames, boardLength, verbose):
     for _ in range(numGames):
+        stats = GameStats()
+
         gameActive = True
         while gameActive:
             for pawn in pawns:
                 roll = diceRoll()
+                stats.moves += 1
                 currentPos = pawn.pos
 
                 if verbose:
@@ -88,7 +105,7 @@ def runGame(pawns, modifierMap, numGames, boardLength, verbose):
                 # Move not > board length
                 if (currentPos + roll) > boardLength:
                     if verbose:
-                        print(f"Roll too high, move invalid\n")
+                        print(f"Roll too high, move invalid")
                     continue
                 else:
                     pawn.pos += roll
@@ -105,7 +122,8 @@ def runGame(pawns, modifierMap, numGames, boardLength, verbose):
                                 print(f"{pawn} hit a ladder and climbed from {squareLanded} to {squareFinal}")
         
                 if pawn.pos == boardLength:
-                    print(f"***** {pawn} has won the game *****\n")
+                    print(f"\n***** {pawn} has won the game *****")
+                    print(f"Total moves: {stats.moves}\n")
                     gameActive = False
                     break
 
