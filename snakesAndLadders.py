@@ -46,6 +46,8 @@ class Pawn():
 @dataclass
 class GameStats:
     moves: int = 0
+    snakeHits: int = 0
+    ladderHits: int = 0
     
 def boardGenerator(length=100, snakes=10, ladders=10) -> tuple[dict, dict, dict]:
     modifierMap = {}
@@ -86,14 +88,16 @@ def buildGame(pawnCount, boardLength, snakes, ladders):
     return pawns, modifierMap, snakeMap, ladderMap
 
 def runGame(pawns, modifierMap, numGames, boardLength, verbose):
+    runStats = GameStats()
+
     for _ in range(numGames):
-        stats = GameStats()
+        gameStats = GameStats()
 
         gameActive = True
         while gameActive:
             for pawn in pawns:
                 roll = diceRoll()
-                stats.moves += 1
+                gameStats.moves += 1
                 currentPos = pawn.pos
 
                 if verbose:
@@ -115,15 +119,25 @@ def runGame(pawns, modifierMap, numGames, boardLength, verbose):
                         pawn.pos = modifierMap[squareLanded]
                         squareFinal = pawn.pos
 
-                        if verbose:
-                            if squareLanded > squareFinal:
+                        if squareLanded > squareFinal:
+                            gameStats.snakeHits += 1
+                            if verbose:
                                 print(f"{pawn} hit a snake and fell from {squareLanded} to {squareFinal}")
-                            elif squareFinal > squareLanded:
+                        elif squareFinal > squareLanded:
+                            gameStats.ladderHits += 1
+                            if verbose:
                                 print(f"{pawn} hit a ladder and climbed from {squareLanded} to {squareFinal}")
         
                 if pawn.pos == boardLength:
+                    # if verbose:
                     print(f"\n***** {pawn} has won the game *****")
-                    print(f"Total moves: {stats.moves}\n")
+                    print(f"Total moves: {gameStats.moves}")
+                    
+                    # --- Update stats ---
+                    runStats.moves += gameStats.moves
+                    runStats.snakeHits += gameStats.snakeHits
+                    runStats.ladderHits += gameStats.ladderHits
+
                     gameActive = False
                     break
 
@@ -131,6 +145,20 @@ def runGame(pawns, modifierMap, numGames, boardLength, verbose):
         for pawn in pawns:
             pawn.pos = 0
 
+    print(statSummary(numGames, runStats))
+
+def statSummary(numGames, gamesStats):
+    output = (
+        f"\nStats over {numGames:,} game{'s' if numGames != 1 else ''}\n"
+        f"{"Total moves:":<22} {gamesStats.moves}\n"
+        f"{"Moves per game:":<22} {gamesStats.moves/numGames:.1f}\n"
+        f"{"Snake hits per game:":<22} {gamesStats.snakeHits/numGames:.1f}\n"
+        f"{"Ladder hits per game:":<22} {gamesStats.ladderHits/numGames:.1f}\n"
+        f"{"Total Snake hits:":<22} {gamesStats.snakeHits}\n"
+        f"{"Total Ladder hits:":<22} {gamesStats.ladderHits}\n"
+    )
+
+    return output
 
 def diceRoll(sides=6) -> int:
     return random.randint(1, sides)
