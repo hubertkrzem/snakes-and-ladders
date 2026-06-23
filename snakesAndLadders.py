@@ -77,8 +77,9 @@ def controller(boardLength=100, snakes=10, ladders=10, pawnNum=2, gamesNum=1, ve
 
     runGame(pawns, modifierMap, gamesNum, boardLength, verbose, snakes, ladders)
 
-    print(f"Snakes: {snakeMap}")
-    print(f"Ladders: {ladderMap}\n")
+    if gamesNum == 1:
+        print(f"Snakes: {snakeMap}")
+        print(f"Ladders: {ladderMap}\n")
 
 def buildGame(pawnCount, boardLength, snakes, ladders):
     pawns = [Pawn(f"P{i}") for i in range(pawnCount)]
