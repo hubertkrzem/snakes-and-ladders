@@ -72,14 +72,13 @@ def boardGenerator(length=100, snakes=10, ladders=10) -> tuple[dict, dict, dict]
 
     return modifierMap, snakeMap, ladderMap
 
-def controller(boardLength=100, snakes=10, ladders=10, pawnNum=2, gamesNum=1, verbose=True, regenerateBoard=True):
+def controller(boardLength=100, snakes=10, ladders=10, pawnNum=2, gamesNum=1, verbose=True):
     pawns, modifierMap, snakeMap, ladderMap = buildGame(pawnNum, boardLength, snakes, ladders)
 
-    runGame(pawns, modifierMap, gamesNum, boardLength, verbose, snakes, ladders, regenerateBoard)
+    runGame(pawns, modifierMap, gamesNum, boardLength, verbose, snakes, ladders)
 
-    if not regenerateBoard:
-        print(f"Snakes: {snakeMap}")
-        print(f"Ladders: {ladderMap}\n")
+    print(f"Snakes: {snakeMap}")
+    print(f"Ladders: {ladderMap}\n")
 
 def buildGame(pawnCount, boardLength, snakes, ladders):
     pawns = [Pawn(f"P{i}") for i in range(pawnCount)]
@@ -87,14 +86,13 @@ def buildGame(pawnCount, boardLength, snakes, ladders):
 
     return pawns, modifierMap, snakeMap, ladderMap
 
-def runGame(pawns, modifierMap, numGames, boardLength, verbose, snakes, ladders, regenerateBoard=True):
+def runGame(pawns, modifierMap, numGames, boardLength, verbose, snakes, ladders):
     runStats = GameStats()
 
     for _ in range(numGames):
         gameStats = GameStats()
 
-        if regenerateBoard:
-            modifierMap, _, _ = boardGenerator(boardLength, snakes, ladders)
+        modifierMap, _, _ = boardGenerator(boardLength, snakes, ladders)
 
         gameActive = True
         while gameActive:
